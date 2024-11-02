@@ -25,6 +25,8 @@ async function run() {
   try {
     const database = client.db("connect-Collage");
      const userCollection = database.collection('users');
+     const reviewsCollection = database.collection('reviews');
+     const AdmissionCollection = database.collection('admission');
     
      app.post("/user", async (req, res) => {
       const user = req.body
@@ -46,7 +48,6 @@ async function run() {
       const email = req.params.email
       const query = {email:email}
       const result = await userCollection.findOne(query)
-      console.log(result)
       res.send(result)
       
     })
@@ -64,7 +65,42 @@ async function run() {
       const result = await userCollection.updateOne(filter, updateDoc);
       console.log(result)
       res.send(result)
-    })  
+    })
+    
+    app.post('/review/:email',async(req,res)=>{
+      const review = req.body;
+      const email = req.params.email
+      const isExist = await reviewsCollection.findOne({email:email})
+      console.log(isExist)
+      if(isExist){
+        return res.send({message:'email is Exist'})
+      }
+      const result = await reviewsCollection.insertOne(review)
+      
+      res.send({message:'success', status:200})
+
+    })
+    app.get('/user/:email',async(req,res)=>{
+      const email = req.params.email
+      console.log(email)
+      const result = await userCollection.findOne({email:email})
+      res.send(result)
+    })
+
+    app.get ('/review',async(req,res)=>{
+      const review = await reviewsCollection.find().toArray()
+       res.send(review)
+      console.log(review)
+      
+    })
+
+    app.post('/admission',async(req,res)=>{
+      const body = req.body;
+      const result = await AdmissionCollection.insertOne(body)
+      console.log(result)
+      res.send(result)
+      
+    })
 
     // app.get('/user', async (req, res) => {
     //     const { email } = req.params;
@@ -85,8 +121,8 @@ async function run() {
     // });
     
     
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
